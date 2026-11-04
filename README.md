@@ -27,7 +27,7 @@ https://github.com/user-attachments/assets/bd6e0862-c597-4e75-a998-ad1d3115a074
 
 5. Build the generated Packed Project Library (PPL) and use it in LabVIEW.
 
-For detailed instructions, see [Usage](#usage).
+For detailed instructions, see [Usage](#-usage).
 
 
 ## ⚙️ How Does It Work?
@@ -299,7 +299,7 @@ After installation, configure a Python virtual environment as described below.
 
 Create a Python module containing the functions you want to use in LabVIEW.
 
-Make sure the module follows the conventions described in [Supported Python Code](#supported-python-code).
+Make sure the module follows the conventions described in [Supported Python Code](#-supported-python-code).
 
 ### 3. Set Up the Python Virtual Environment
 
@@ -315,7 +315,7 @@ If required, install the dependencies of your Python module (e.g., NumPy):
 uv pip install numpy
 ```
 
-Configure the `py2vi_global_venv` environment variable as described in [Python Virtual Environments](#python-virtual-environments).
+Configure the `py2vi_global_venv` environment variable as described in [Python Virtual Environments](#-python-virtual-environments).
 
 ### 4. Run py2vi
 

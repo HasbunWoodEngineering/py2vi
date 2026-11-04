@@ -1,0 +1,49 @@
+name: Python CI
+
+on:
+  push:
+      branches:
+        - main
+      paths:
+      - "python/**"
+
+jobs:
+  pytest:
+    name: Pytest
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Build image
+        run: docker build --file python/Dockerfile.ci --tag py2vi-python-ci python
+
+      - name: Run pytest
+        shell: pwsh
+        run: docker run --rm `
+          -v "${PWD}/reports:/reports" `
+          py2vi-python-ci `
+          sh -c 'uv run pytest --junitxml=/reports/pytest-results.xml; result=$?; chown -R 1000:1000 /reports; exit $result'
+
+      - name: Publish Python Test Results
+        uses: dorny/test-reporter@v3
+        if: ${{ !cancelled() }}
+        with:
+          name: Python Unit Tests
+          path: reports/pytest-results.xml
+          reporter: python-xunit
+
+  black:
+    name: Black
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Build image
+        run: docker build --file python/Dockerfile.ci --tag py2vi-python-ci python
+
+      - name: Check formatting
+        run: docker run --rm py2vi-python-ci uv run black --check analyze.py generate_adapter.py tests

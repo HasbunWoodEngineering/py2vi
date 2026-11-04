@@ -1,0 +1,25 @@
+FROM python:3.12.7-slim
+
+WORKDIR /app
+
+COPY pyproject.toml ./
+COPY analyze.py generate_adapter.py ./
+COPY templates ./templates
+COPY tests ./tests
+
+# ------------------------------------------------------------
+# Install uv
+# ------------------------------------------------------------
+RUN apt-get update; \
+    apt-get install -y --no-install-recommends \
+        curl; \
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Add uv to PATH
+ENV PATH="/root/.local/bin:$PATH"
+
+# Check installation
+RUN uv --version
+
+# Build .venv
+RUN uv sync --extra dev

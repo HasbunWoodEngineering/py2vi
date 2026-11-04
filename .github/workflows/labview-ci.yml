@@ -1,0 +1,106 @@
+name: LabVIEW CI
+
+on:
+  push:
+      branches:
+        - main
+      paths:
+      - "labview/**"
+      - "python/**"
+
+jobs:
+  static-code-analysis:
+    name: Static Code Analysis
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Build CI image
+        run: docker build --file labview/Dockerfile.ci --tag py2vi-labview-ci .
+
+      - name: Run VI Analyzer
+        shell: pwsh
+        run: |
+            docker run --rm `
+            -v "${PWD}/labview/Actors:/workspace/Actors" `
+            -v "${PWD}/labview/Classes:/workspace/Classes" `
+            -v "${PWD}/labview/Constants:/workspace/Constants" `
+            -v "${PWD}/labview/Custom Errors:/workspace/Custom Errors" `
+            -v "${PWD}/labview/Interfaces:/workspace/Interfaces" `
+            -v "${PWD}/labview/Support:/workspace/Support" `
+            -v "${PWD}/labview/Type Definitions:/workspace/Type Definitions" `
+            -v "${PWD}/labview/config.viancfg:/workspace/config.viancfg" `
+            py2vi-labview-ci `
+            bash -c 'LabVIEWCLI -LabVIEWPath "$LABVIEW_PATH" -OperationName RunVIAnalyzer -ConfigPath /workspace/config.viancfg -ReportPath /tmp/vi-analyzer.txt -Headless; result=$?; cat /tmp/vi-analyzer.txt; exit $result'
+
+      - name: Mass Compile
+        shell: pwsh
+        run: |
+            docker run --rm  `
+            -v "${PWD}/labview/Actors:/workspace/Actors" `
+            -v "${PWD}/labview/Classes:/workspace/Classes" `
+            -v "${PWD}/labview/Constants:/workspace/Constants" `
+            -v "${PWD}/labview/Custom Errors:/workspace/Custom Errors" `
+            -v "${PWD}/labview/Interfaces:/workspace/Interfaces" `
+            -v "${PWD}/labview/Support:/workspace/Support" `
+            -v "${PWD}/labview/Type Definitions:/workspace/Type Definitions" `
+            py2vi-labview-ci `
+            bash -c 'LabVIEWCLI -LabVIEWPath "$LABVIEW_PATH" -OperationName MassCompile -DirectoryToCompile /workspace -MassCompileLogFile /tmp/mass-compile.txt -Headless'
+      
+  unit-testing:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Build CI image
+        run: docker build --file labview/Dockerfile.ci --tag py2vi-labview-ci .
+
+      - name: Run LUnit Tests
+        shell: pwsh
+        run: |
+            docker run --rm `
+            -v "${PWD}/labview:/workspace/labview/" `
+            -v "${PWD}/python/analyze.py:/workspace/python/analyze.py" `
+            -v "${PWD}/python/generate_adapter.py:/workspace/python/generate_adapter.py" `
+            -v "${PWD}/python/tests/dummy_module.py:/workspace/python/tests/dummy_module.py" `
+            -v "${PWD}/python/templates:/workspace/python/templates" `
+            -v "${PWD}/reports:/reports" `
+            py2vi-labview-ci bash -c 'LabVIEWCLI -LabVIEWPath "$LABVIEW_PATH" -OperationName LUnit -Path /workspace/ -ReportPath /reports/unit-tests.xml -Headless; chown -R 1000:1000 /reports'
+
+      - name: Publish Test Results
+        uses: dorny/test-reporter@v3
+        if: ${{ !cancelled() }}
+        with:
+          name: LUnit Tests
+          path: reports/unit-tests.xml
+          reporter: java-junit
+
+  end-2-end-test:
+    name: End-to-end Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Build CI image
+        run: docker build --file labview/Dockerfile.ci --tag py2vi-labview-ci .
+
+      - name: Run tool
+        shell: pwsh
+        run: |
+            New-Item -ItemType Directory -Force -Path "${PWD}/output" | Out-Null
+
+            docker run --rm `
+              -v "${PWD}/labview:/workspace/labview/" `
+              -v "${PWD}/python/analyze.py:/workspace/python/analyze.py" `
+              -v "${PWD}/python/generate_adapter.py:/workspace/python/generate_adapter.py" `
+              -v "${PWD}/python/tests/dummy_module.py:/workspace/python/tests/dummy_module.py" `
+              -v "${PWD}/python/templates:/workspace/python/templates" `
+              py2vi-labview-ci bash -c 'LabVIEWCLI -LabVIEWPath "$LABVIEW_PATH" -OperationName RunVI -VIPath /workspace/labview/Launchers/py2vi-lvcli.vi -module /workspace/python/tests/dummy_module.py -output /tmp -log-file /tmp/py2vi_log.txt -Headless; cat /tmp/py2vi_log.txt; LabVIEWCLI -LabVIEWPath "$LABVIEW_PATH" -OperationName ExecuteBuildSpec -ProjectPath /tmp/dummy_module/dummy_module.lvproj -Headless'
+

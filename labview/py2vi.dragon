@@ -1,0 +1,17 @@
+[project]
+labview-version = 2026
+vipc = ""
+
+[nipm]
+
+[vipm]
+
+[vipm.dependencies]
+astemes_lib_lmock = "1.4.14.15"
+astemes_lib_lunit = "2.0.13.6"
+astemes_lib_lunit_cli = "1.7.1.32"
+oglib_file = "6.0.2.28"
+oglib_string = "6.0.2.35"
+astemes_lib_lunit_parameterized_add_on = "1.1.10.8"
+sas_workshops_lib_blue_formatter_for_labview = "4.0.1.981"
+wiresmith_technology_lib_g_cli = "3.0.1.98"

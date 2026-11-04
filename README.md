@@ -13,7 +13,7 @@ https://github.com/user-attachments/assets/bd6e0862-c597-4e75-a998-ad1d3115a074
 
 ## 🚀 Quick Start
 
-1. Install py2vi using [VI Package Manager (VIPM)](https://www.vipm.io/).
+1. Install py2vi using [VI Package Manager (VIPM)](https://www.vipm.io/package/hasbun_wood_engineering_lib_py2vi/).
 
 2. Prepare a Python module with [supported type annotations](#supported-python-code).
 

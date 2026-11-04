@@ -291,7 +291,7 @@ py2vi is executed using the [G-CLI](https://github.com/ni/g-cli) command-line in
 
 ### 1. Installation
 
-Install py2vi using [VI Package Manager (VIPM)](https://www.vipm.io/).
+Install py2vi using [VI Package Manager (VIPM)](https://www.vipm.io/package/hasbun_wood_engineering_lib_py2vi/).
 
 After installation, configure a Python virtual environment as described below.
 
